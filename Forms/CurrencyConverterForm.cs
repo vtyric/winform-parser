@@ -23,52 +23,59 @@ namespace CurrencyConverter
         public CurrencyForm()
         {
             InitializeComponent();
-            const int requestInterval = 60 * 60;
+            const int requestInterval = 1;
             timer = new Timer { Interval = requestInterval };
             timer.Start();
             currencyConverter = new CurrencyConverter();
-            timer.Tick += currencyConverter.UpdateCurrencies;
-            currencyConverter.CurrencyRatesChanged += currencies =>
+            timer.Tick += (o, args) =>
             {
-                AddTopLabels(currencies);
-                var amountInput = new TextBox
-                {
-                    Location = new Point(44, 246),
-                    Size = new Size(100, 20),
-                    TabIndex = 0,
-                    Text = "1"
-                };
-                var resultInput = new Label
-                {
-                    Location = new Point(613, 246),
-                    Size = new Size(100, 23),
-                    TabIndex = 1,
-                    Text = $"={GetResult()}"
-                };
-                Controls.Add(amountInput);
-                Controls.Add(resultInput);
-                amountInput.TextChanged += (sender, args) =>
-                {
-                    amount = double.TryParse(amountInput.Text, out var newAmount) ? newAmount : 0;
-                    resultInput.Text = $"={GetResult()}";
-                };
-                var fromCombobox = GetComboBox(new object[] { "usd", "eur", "rub" }, 240, "usd");
-                var toCombobox = GetComboBox(new object[] { "eur", "usd", "rub" }, 480, "eur");
-                Controls.Add(fromCombobox);
-                Controls.Add(toCombobox);
-                fromCombobox.TextChanged += (sender, args) =>
-                {
-                    from = fromCombobox.Text;
-                    resultInput.Text = $"={GetResult()}";
-                };
-                toCombobox.TextChanged += (sender, args) =>
-                {
-                    to = toCombobox.Text;
-                    resultInput.Text = $"={GetResult()}";
-                };
+                timer.Stop();
+                currencyConverter.UpdateCurrencies(o, args);
             };
+            currencyConverter.CurrencyRatesChanged += MakeFormStep;
+            
         }
 
+        private void MakeFormStep(List<Currency> currencies)
+        {
+            AddTopLabels(currencies);
+            var amountInput = new TextBox
+            {
+                Location = new Point(44, 246),
+                Size = new Size(100, 20),
+                TabIndex = 0,
+                Text = "1"
+            };
+            var resultInput = new Label
+            {
+                Location = new Point(613, 246),
+                Size = new Size(100, 23),
+                TabIndex = 1,
+                Text = $"={GetResult()}"
+            };
+            Controls.Add(amountInput);
+            Controls.Add(resultInput);
+            amountInput.TextChanged += (sender, args) =>
+            {
+                amount = double.TryParse(amountInput.Text, out var newAmount) ? newAmount : 0;
+                resultInput.Text = $"={GetResult()}";
+            };
+            var fromCombobox = GetComboBox(new object[] { "usd", "eur", "rub" }, 240, "usd");
+            var toCombobox = GetComboBox(new object[] { "eur", "usd", "rub" }, 480, "eur");
+            Controls.Add(fromCombobox);
+            Controls.Add(toCombobox);
+            fromCombobox.TextChanged += (sender, args) =>
+            {
+                from = fromCombobox.Text;
+                resultInput.Text = $"={GetResult()}";
+            };
+            toCombobox.TextChanged += (sender, args) =>
+            {
+                to = toCombobox.Text;
+                resultInput.Text = $"={GetResult()}";
+            };
+        }
+        
         private ComboBox GetComboBox(object[] names, int x, string initValue)
         {
             var comboBox = new ComboBox()
